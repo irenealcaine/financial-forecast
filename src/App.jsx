@@ -280,7 +280,7 @@ const FinancialForecast = () => {
         <div className="flex flex-col sm:flex-row gap-2 mb-6">
           <button
             onClick={() => setShowRuleModal(true)}
-            className="w-full sm:w-auto border-2 border-purple-800 text-purple-400 hover:bg-purple-700 hover:text-white px-4 py-1.5 rounded flex items-center justify-center gap-2 transition-colors"
+            className="w-full sm:w-auto border-2 border-sky-800 text-sky-400 hover:bg-sky-700 hover:text-white px-4 py-1.5 rounded flex items-center justify-center gap-2 transition-colors"
           >
             <Plus size={16} />
             <span className="sm:inline">Regla Mensual</span>
