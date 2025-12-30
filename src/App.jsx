@@ -61,6 +61,7 @@ const FinancialForecast = () => {
   const [editingRule, setEditingRule] = useState(null);
   const [editingEvent, setEditingEvent] = useState(null);
   const [editingMovement, setEditingMovement] = useState(null);
+  const [showSettings, setShowSettings] = useState(false);
 
   // Funciones de exportación e importación
   const exportData = () => {
@@ -194,6 +195,11 @@ const FinancialForecast = () => {
   const currentDay = today.getFullYear() === year ? dateToDay(year, today) : null;
   const currentDifference = currentDay ? realLine[currentDay - 1].real - realLine[currentDay - 1].forecast : 0;
 
+  // Fin de año (31 de diciembre)
+  const endOfYear = getDaysInYear(year);
+  const endOfYearData = realLine[endOfYear - 1];
+  const endOfYearDifference = endOfYearData.real - endOfYearData.forecast;
+
   // Datos para la gráfica (muestreo cada 2 días para mejor precisión)
   const chartData = realLine.filter((_, i) => i % 2 === 0 || i === realLine.length - 1).map(point => ({
     ...point,
@@ -201,7 +207,7 @@ const FinancialForecast = () => {
   }));
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white p-4">
+    <div className="min-h-screen bg-linear-to-br from-zinc-950 to-slate-950 text-white p-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
@@ -209,16 +215,24 @@ const FinancialForecast = () => {
             <h1 className="text-2xl font-bold">Previsión Financiera {year}</h1>
             <div className="flex gap-2">
               <button
+                onClick={() => setShowSettings(!showSettings)}
+                className="bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded flex items-center gap-2 text-sm"
+                title="Configuración"
+              >
+                <span className="text-lg">⚙️</span>
+                <span className="hidden sm:inline">{showSettings ? 'Ocultar' : 'Config'}</span>
+              </button>
+              <button
                 onClick={exportData}
                 className="bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded flex items-center gap-2 text-sm"
                 title="Exportar datos"
               >
                 <Download size={16} />
-                Exportar
+                <span className="hidden sm:inline">Exportar</span>
               </button>
               <label className="bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded flex items-center gap-2 text-sm cursor-pointer">
                 <Upload size={16} />
-                Importar
+                <span className="hidden sm:inline">Importar</span>
                 <input
                   type="file"
                   accept=".json"
@@ -229,31 +243,33 @@ const FinancialForecast = () => {
             </div>
           </div>
 
-          <div className="flex gap-4 items-center mb-4">
-            <div>
-              <label className="block text-sm text-gray-500 mb-1">Año</label>
-              <input
-                type="number"
-                value={year}
-                onChange={(e) => setYear(parseInt(e.target.value))}
-                className="bg-gray-900 border border-gray-800 rounded px-3 py-2 w-24"
-              />
+          {showSettings && (
+            <div className="flex gap-4 items-center mb-4 p-3 bg-gray-800/30 rounded-lg">
+              <div>
+                <label className="block text-sm text-gray-500 mb-1">Año</label>
+                <input
+                  type="number"
+                  value={year}
+                  onChange={(e) => setYear(parseInt(e.target.value))}
+                  className="bg-gray-900 border border-gray-700 rounded px-3 py-2 w-24"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-500 mb-1">Saldo Inicial (1 Ene)</label>
+                <input
+                  type="number"
+                  value={initialBalance}
+                  onChange={(e) => setInitialBalance(parseFloat(e.target.value))}
+                  className="bg-gray-900 border border-gray-700 rounded px-3 py-2 w-32"
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm text-gray-500 mb-1">Saldo Inicial (1 Ene)</label>
-              <input
-                type="number"
-                value={initialBalance}
-                onChange={(e) => setInitialBalance(parseFloat(e.target.value))}
-                className="bg-gray-900 border border-gray-800 rounded px-3 py-2 w-32"
-              />
-            </div>
-          </div>
+          )}
 
           {currentDay && (
             <div className="text-sm">
               <span className="text-gray-500">Diferencia actual: </span>
-              <span className={currentDifference >= 0 ? 'text-purple-400' : 'text-pink-400'}>
+              <span className={currentDifference >= 0 ? 'text-blue-400' : 'text-red-400'}>
                 {currentDifference >= 0 ? '+' : ''}{currentDifference.toFixed(2)} €
               </span>
             </div>
@@ -261,53 +277,55 @@ const FinancialForecast = () => {
         </div>
 
         {/* Botones de acción */}
-        <div className="flex gap-2 mb-6 flex-wrap">
+        <div className="flex flex-col sm:flex-row gap-2 mb-6">
           <button
             onClick={() => setShowRuleModal(true)}
-            className="bg-purple-900 hover:bg-purple-800 px-4 py-2 rounded flex items-center gap-2"
+            className="w-full sm:w-auto border-2 border-purple-800 text-purple-400 hover:bg-purple-700 hover:text-white px-4 py-1.5 rounded flex items-center justify-center gap-2 transition-colors"
           >
             <Plus size={16} />
-            Regla Mensual
+            <span className="sm:inline">Regla Mensual</span>
           </button>
           <button
             onClick={() => setShowEventModal(true)}
-            className="bg-purple-900 hover:bg-purple-800 px-4 py-2 rounded flex items-center gap-2"
+            className="w-full sm:w-auto border-2 border-blue-800 text-blue-400 hover:bg-blue-700 hover:text-white px-4 py-1.5 rounded flex items-center justify-center gap-2 transition-colors"
           >
             <Plus size={16} />
-            Evento Previsto
+            <span className="sm:inline">Evento Previsto</span>
           </button>
           <button
             onClick={() => setShowMovementModal(true)}
-            className="bg-purple-900 hover:bg-purple-800 px-4 py-2 rounded flex items-center gap-2"
+            className="w-full sm:w-auto border-2 border-indigo-800 text-indigo-400 hover:bg-indigo-700 hover:text-white px-4 py-1.5 rounded flex items-center justify-center gap-2 transition-colors"
           >
             <Plus size={16} />
-            Movimiento Real
+            <span className="sm:inline">Movimiento Real</span>
           </button>
         </div>
 
         {/* Gráfica */}
-        <div className="bg-gray-900 rounded-lg p-2 sm:p-4 mb-6">
+        <div className="bg-gray-900/50 rounded-lg p-1 sm:p-4 mb-6">
           <ResponsiveContainer width="100%" height={400}>
-            <LineChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+            <LineChart data={chartData} margin={{ top: 5, right: 8, left: -8, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#1F2937" opacity={0.3} />
               <XAxis
                 dataKey="date"
                 stroke="#6B7280"
-                tick={{ fill: '#6B7280', fontSize: 11 }}
+                tick={{ fill: '#6B7280', fontSize: 8 }}
               />
               <YAxis
                 stroke="#6B7280"
-                tick={{ fill: '#6B7280', fontSize: 11 }}
+                tick={{ fill: '#6B7280', fontSize: 8 }}
+                width={40}
+                domain={['auto', 'auto']}
               />
               <Tooltip
                 contentStyle={{ backgroundColor: '#111827', border: '1px solid #1F2937', borderRadius: '6px' }}
                 labelStyle={{ color: '#9CA3AF' }}
               />
-              {currentDay && <ReferenceLine x={currentDay} stroke="#8B5CF6" strokeWidth={2} />}
+              {currentDay && <ReferenceLine x={currentDay} stroke="#3B82F6" strokeWidth={2} />}
               <Line
                 type="monotone"
                 dataKey="forecast"
-                stroke="#7C3AED"
+                stroke="#1E40AF"
                 strokeWidth={1.5}
                 dot={false}
                 name="Previsto"
@@ -315,7 +333,7 @@ const FinancialForecast = () => {
               <Line
                 type="monotone"
                 dataKey="real"
-                stroke="#A78BFA"
+                stroke="#3B82F6"
                 strokeWidth={1.5}
                 dot={false}
                 name="Real"
@@ -324,14 +342,69 @@ const FinancialForecast = () => {
           </ResponsiveContainer>
         </div>
 
+        {/* Resumen financiero */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+          {/* Situación actual */}
+          {currentDay && (
+            <div className="bg-gray-900/50 rounded-lg p-4">
+              <h3 className="font-semibold mb-3 text-blue-400">Situación Actual</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Real:</span>
+                  <span className="text-white font-medium">
+                    {realLine[currentDay - 1].real.toFixed(2)} €
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Previsto:</span>
+                  <span className="text-white font-medium">
+                    {realLine[currentDay - 1].forecast.toFixed(2)} €
+                  </span>
+                </div>
+                <div className="flex justify-between border-t border-gray-700 pt-2">
+                  <span className="text-gray-400">Diferencia:</span>
+                  <span className={`font-medium ${currentDifference >= 0 ? 'text-blue-400' : 'text-red-400'}`}>
+                    {currentDifference >= 0 ? '+' : ''}{currentDifference.toFixed(2)} €
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Fin de año */}
+          <div className="bg-gray-900/50 rounded-lg p-4">
+            <h3 className="font-semibold mb-3 text-slate-400">31 Diciembre {year}</h3>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-400">Real:</span>
+                <span className="text-white font-medium">
+                  {endOfYearData.real.toFixed(2)} €
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Previsto:</span>
+                <span className="text-white font-medium">
+                  {endOfYearData.forecast.toFixed(2)} €
+                </span>
+              </div>
+              <div className="flex justify-between border-t border-gray-700 pt-2">
+                <span className="text-gray-400">Diferencia:</span>
+                <span className={`font-medium ${endOfYearDifference >= 0 ? 'text-blue-400' : 'text-red-400'}`}>
+                  {endOfYearDifference >= 0 ? '+' : ''}{endOfYearDifference.toFixed(2)} €
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Listas */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Reglas mensuales */}
-          <div className="bg-gray-900 rounded-lg p-4">
+          <div className="bg-gray-900/50 rounded-lg p-4">
             <h3 className="font-semibold mb-3">Reglas Mensuales</h3>
             <div className="space-y-2">
               {monthlyRules.map((rule, i) => (
-                <div key={i} className="flex justify-between items-center text-sm bg-gray-800 p-2 rounded">
+                <div key={i} className="flex justify-between items-center text-sm bg-gray-800/50 p-2 rounded">
                   <div
                     className="flex-1 cursor-pointer"
                     onClick={() => {
@@ -340,7 +413,7 @@ const FinancialForecast = () => {
                     }}
                   >
                     {rule.title && <div className="text-white text-sm font-medium">{rule.title}</div>}
-                    <div className={rule.amount >= 0 ? 'text-purple-400' : 'text-pink-400'}>
+                    <div className={rule.amount >= 0 ? 'text-blue-400' : 'text-red-400'}>
                       {rule.amount >= 0 ? '+' : ''}{rule.amount} €
                     </div>
                     <div className="text-gray-500 text-xs">
@@ -359,11 +432,11 @@ const FinancialForecast = () => {
           </div>
 
           {/* Eventos previstos */}
-          <div className="bg-gray-900 rounded-lg p-4">
+          <div className="bg-gray-900/50 rounded-lg p-4">
             <h3 className="font-semibold mb-3">Eventos Previstos</h3>
             <div className="space-y-2">
               {plannedEvents.map((event, i) => (
-                <div key={i} className="flex justify-between items-center text-sm bg-gray-800 p-2 rounded">
+                <div key={i} className="flex justify-between items-center text-sm bg-gray-800/50 p-2 rounded">
                   <div
                     className="flex-1 cursor-pointer"
                     onClick={() => {
@@ -372,7 +445,7 @@ const FinancialForecast = () => {
                     }}
                   >
                     {event.title && <div className="text-white text-sm font-medium">{event.title}</div>}
-                    <div className={event.amount >= 0 ? 'text-purple-400' : 'text-pink-400'}>
+                    <div className={event.amount >= 0 ? 'text-blue-400' : 'text-red-400'}>
                       {event.amount >= 0 ? '+' : ''}{event.amount} €
                     </div>
                     <div className="text-gray-500 text-xs">
@@ -382,7 +455,7 @@ const FinancialForecast = () => {
                   </div>
                   <button
                     onClick={() => setPlannedEvents(plannedEvents.filter((_, idx) => idx !== i))}
-                    className="text-gray-500 hover:text-pink-400"
+                    className="text-gray-500 hover:text-red-400"
                   >
                     <X size={16} />
                   </button>
@@ -392,11 +465,11 @@ const FinancialForecast = () => {
           </div>
 
           {/* Movimientos reales */}
-          <div className="bg-gray-900 rounded-lg p-4">
+          <div className="bg-gray-900/50 rounded-lg p-4">
             <h3 className="font-semibold mb-3">Movimientos Reales</h3>
             <div className="space-y-2">
               {realMovements.map((mov, i) => (
-                <div key={i} className="flex justify-between items-center text-sm bg-gray-800 p-2 rounded">
+                <div key={i} className="flex justify-between items-center text-sm bg-gray-800/50 p-2 rounded">
                   <div
                     className="flex-1 cursor-pointer"
                     onClick={() => {
@@ -405,7 +478,7 @@ const FinancialForecast = () => {
                     }}
                   >
                     {mov.title && <div className="text-white text-sm font-medium">{mov.title}</div>}
-                    <div className={mov.amount >= 0 ? 'text-purple-400' : 'text-pink-400'}>
+                    <div className={mov.amount >= 0 ? 'text-blue-400' : 'text-red-400'}>
                       {mov.amount >= 0 ? '+' : ''}{mov.amount} €
                     </div>
                     <div className="text-gray-500 text-xs">
@@ -415,7 +488,7 @@ const FinancialForecast = () => {
                   </div>
                   <button
                     onClick={() => setRealMovements(realMovements.filter((_, idx) => idx !== i))}
-                    className="text-gray-500 hover:text-pink-400"
+                    className="text-gray-500 hover:text-red-400"
                   >
                     <X size={16} />
                   </button>
@@ -569,7 +642,7 @@ const RuleModal = ({ isOpen, onClose, onSave, editData }) => {
         </div>
         <button
           onClick={handleSave}
-          className="w-full bg-purple-900 hover:bg-purple-800 py-2 rounded"
+          className="w-full border-2 border-emerald-600 text-emerald-400 hover:bg-emerald-600 hover:text-white py-2 rounded transition-colors"
         >
           {editData ? "Actualizar" : "Guardar"}
         </button>
@@ -652,7 +725,7 @@ const EventModal = ({ isOpen, onClose, onSave, year, editData }) => {
         </div>
         <button
           onClick={handleSave}
-          className="w-full bg-purple-900 hover:bg-purple-800 py-2 rounded"
+          className="w-full border-2 border-blue-600 text-blue-400 hover:bg-blue-600 hover:text-white py-2 rounded transition-colors"
         >
           {editData ? "Actualizar" : "Guardar"}
         </button>
@@ -735,7 +808,7 @@ const MovementModal = ({ isOpen, onClose, onSave, year, editData }) => {
         </div>
         <button
           onClick={handleSave}
-          className="w-full bg-purple-900 hover:bg-purple-800 py-2 rounded"
+          className="w-full border-2 border-indigo-600 text-indigo-400 hover:bg-indigo-600 hover:text-white py-2 rounded transition-colors"
         >
           {editData ? "Actualizar" : "Guardar"}
         </button>
