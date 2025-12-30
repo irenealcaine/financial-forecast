@@ -227,11 +227,11 @@ const FinancialForecast = () => {
                 className="bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded flex items-center gap-2 text-sm"
                 title="Exportar datos"
               >
-                <Download size={16} />
+                <Upload size={16} />
                 <span className="hidden sm:inline">Exportar</span>
               </button>
               <label className="bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded flex items-center gap-2 text-sm cursor-pointer">
-                <Upload size={16} />
+                <Download size={16} />
                 <span className="hidden sm:inline">Importar</span>
                 <input
                   type="file"
