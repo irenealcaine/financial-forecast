@@ -145,7 +145,8 @@ const FinancialForecast = () => {
       // Aplicar reglas mensuales activas
       monthlyRules.forEach(rule => {
         const ruleStartDate = new Date(rule.activeFrom);
-        if (date >= ruleStartDate) {
+        const ruleEndDate = rule.activeUntil ? new Date(rule.activeUntil) : new Date(year, 11, 31);
+        if (date >= ruleStartDate && date <= ruleEndDate) {
           const adjustedDay = getAdjustedDay(year, month, rule.dayOfMonth);
           if (dayOfMonth === adjustedDay) {
             balance += rule.amount;
@@ -417,7 +418,8 @@ const FinancialForecast = () => {
                       {rule.amount >= 0 ? '+' : ''}{rule.amount} €
                     </div>
                     <div className="text-gray-500 text-xs">
-                      Día {rule.dayOfMonth} (desde {new Date(rule.activeFrom).toLocaleDateString()})
+                      Día {rule.dayOfMonth} - Desde {new Date(rule.activeFrom).toLocaleDateString()}
+                      {rule.activeUntil && ` hasta ${new Date(rule.activeUntil).toLocaleDateString()}`}
                     </div>
                   </div>
                   <button
@@ -571,6 +573,7 @@ const RuleModal = ({ isOpen, onClose, onSave, editData }) => {
   const [amount, setAmount] = useState('');
   const [dayOfMonth, setDayOfMonth] = useState('1');
   const [activeFrom, setActiveFrom] = useState(new Date().toISOString().split('T')[0]);
+  const [activeUntil, setActiveUntil] = useState('');
 
   useEffect(() => {
     if (editData) {
@@ -578,11 +581,13 @@ const RuleModal = ({ isOpen, onClose, onSave, editData }) => {
       setAmount(editData.amount.toString());
       setDayOfMonth(editData.dayOfMonth.toString());
       setActiveFrom(editData.activeFrom);
+      setActiveUntil(editData.activeUntil || '');
     } else {
       setTitle('');
       setAmount('');
       setDayOfMonth('1');
       setActiveFrom(new Date().toISOString().split('T')[0]);
+      setActiveUntil('');
     }
   }, [editData, isOpen]);
 
@@ -592,7 +597,8 @@ const RuleModal = ({ isOpen, onClose, onSave, editData }) => {
         title,
         amount: parseFloat(amount),
         dayOfMonth: parseInt(dayOfMonth),
-        activeFrom
+        activeFrom,
+        activeUntil: activeUntil || undefined
       });
     }
   };
@@ -639,6 +645,16 @@ const RuleModal = ({ isOpen, onClose, onSave, editData }) => {
             onChange={(e) => setActiveFrom(e.target.value)}
             className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2"
           />
+        </div>
+        <div>
+          <label className="block text-sm text-gray-500 mb-1">Activa hasta (opcional)</label>
+          <input
+            type="date"
+            value={activeUntil}
+            onChange={(e) => setActiveUntil(e.target.value)}
+            className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2"
+          />
+          <p className="text-xs text-gray-500 mt-1">Si no se completa, la regla se aplica hasta fin de año.</p>
         </div>
         <button
           onClick={handleSave}
